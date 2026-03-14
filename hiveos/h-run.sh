@@ -5,8 +5,9 @@
 # Figure out where we are installed
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "[xmrig] Script dir: $SCRIPT_DIR"
-echo "[xmrig] Contents:"
-ls -la "$SCRIPT_DIR/"
+echo "[xmrig] Running as user: $(whoami), HOME=$HOME"
+echo "[xmrig] Contents of script dir:"
+ls -la "$SCRIPT_DIR/" 2>&1
 
 # Source HiveOS configs if available
 [[ -f /hive-config/rig.conf ]] && source /hive-config/rig.conf
@@ -31,18 +32,26 @@ else
 fi
 echo "always" > /sys/kernel/mm/transparent_hugepage/enabled 2>/dev/null
 
-# Copy config.json to ALL default XMRig search locations so it always finds it
+# Copy config.json to ALL possible XMRig default search locations
 CONFIG_SRC="$SCRIPT_DIR/config.json"
 if [[ -f "$CONFIG_SRC" ]]; then
     echo "[xmrig] Found config at: $CONFIG_SRC"
+    # Copy to $HOME paths (works regardless of whether running as root or user)
+    cp "$CONFIG_SRC" "$HOME/.xmrig.json" 2>/dev/null
+    mkdir -p "$HOME/.config" 2>/dev/null
+    cp "$CONFIG_SRC" "$HOME/.config/xmrig.json" 2>/dev/null
+    # Also copy to /root/ in case running via sudo
     cp "$CONFIG_SRC" /root/.xmrig.json 2>/dev/null
     mkdir -p /root/.config 2>/dev/null
     cp "$CONFIG_SRC" /root/.config/xmrig.json 2>/dev/null
-    echo "[xmrig] Copied config to /root/.xmrig.json and /root/.config/xmrig.json"
+    # Also copy to /home/user/ explicitly (common HiveOS user)
+    cp "$CONFIG_SRC" /home/user/.xmrig.json 2>/dev/null
+    mkdir -p /home/user/.config 2>/dev/null
+    cp "$CONFIG_SRC" /home/user/.config/xmrig.json 2>/dev/null
+    echo "[xmrig] Copied config to $HOME/.xmrig.json, /root/.xmrig.json, /home/user/.xmrig.json"
 else
     echo "[xmrig] WARNING: No config.json found at $CONFIG_SRC"
-    echo "[xmrig] Directory contents:"
-    ls -la "$SCRIPT_DIR/" 2>/dev/null
+    ls -la "$SCRIPT_DIR/" 2>&1
 fi
 
 # Override pool/wallet/algo from flight sheet via CLI args if set
