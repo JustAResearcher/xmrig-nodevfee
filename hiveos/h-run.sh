@@ -1,57 +1,55 @@
 #!/usr/bin/env bash
-#
-# h-run.sh — Start XMRig for HiveOS
-#
 
-cd /hive/miners/custom/xmrig-custom
+# XMRig Custom Miner for HiveOS (0% dev fee)
 
-[[ -f h-manifest.conf ]] && . h-manifest.conf
-[[ -f /hive-config/rig.conf ]] && . /hive-config/rig.conf
-[[ -f /hive-config/wallet.conf ]] && . /hive-config/wallet.conf
+MINER_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-MINER_DIR="/hive/miners/custom/${CUSTOM_NAME:-xmrig-custom}"
-MINER_CONFIG="$MINER_DIR/config.json"
-MINER_LOG_DIR="/var/log/miner/${CUSTOM_NAME:-xmrig-custom}"
+# Source HiveOS configs if available
+[[ -f /hive-config/rig.conf ]] && source /hive-config/rig.conf
 
-# Create log directory
-mkdir -p "$MINER_LOG_DIR"
-
-# Generate config from flight sheet variables
-. "$MINER_DIR/h-config.sh"
-
-# If config still doesn't exist, bail
-if [[ ! -f "$MINER_CONFIG" ]]; then
-    echo "ERROR: No config.json found! Set Pool URL in your HiveOS flight sheet."
-    exit 1
-fi
-
-# Enable 1GB huge pages (one per CPU thread for RandomX)
+# Enable 1GB huge pages
 echo "[hugepages] Enabling 1GB huge pages..."
 NR_1GB=$(nproc)
 sysctl -w vm.nr_hugepages=$NR_1GB 2>/dev/null
-
 for node in $(find /sys/devices/system/node/node* -maxdepth 0 -type d 2>/dev/null); do
     echo $NR_1GB > "$node/hugepages/hugepages-1048576kB/nr_hugepages" 2>/dev/null
 done
-
-# Verify 1GB pages were allocated
 ALLOC_1GB=0
 for node in $(find /sys/devices/system/node/node* -maxdepth 0 -type d 2>/dev/null); do
     count=$(cat "$node/hugepages/hugepages-1048576kB/nr_hugepages" 2>/dev/null || echo 0)
     ALLOC_1GB=$((ALLOC_1GB + count))
 done
-
 if [[ "$ALLOC_1GB" -gt 0 ]]; then
-    echo "[hugepages] Successfully allocated ${ALLOC_1GB} x 1GB huge pages"
+    echo "[hugepages] Allocated ${ALLOC_1GB} x 1GB huge pages"
 else
-    echo "[hugepages] WARNING: Could not allocate 1GB pages (need kernel boot param: hugepagesz=1G hugepages=N)"
-    echo "[hugepages] Falling back to 2MB huge pages..."
+    echo "[hugepages] Falling back to 2MB huge pages"
     sysctl -w vm.nr_hugepages=1280 2>/dev/null
 fi
-
-# Enable transparent huge pages as fallback
 echo "always" > /sys/kernel/mm/transparent_hugepage/enabled 2>/dev/null
 
-# Run the miner
+# Build command line args from flight sheet
+ARGS="--config=${MINER_DIR}/config.json --donate-level=0 --http-port=60080"
+
+# Pool URL from flight sheet (CUSTOM_URL)
+[[ -n "$CUSTOM_URL" ]] && ARGS="$ARGS -o $CUSTOM_URL"
+
+# Wallet from flight sheet (CUSTOM_TEMPLATE or CUSTOM_URL2)
+WALLET="${CUSTOM_TEMPLATE:-$CUSTOM_URL2}"
+[[ -n "$WALLET" ]] && ARGS="$ARGS -u $WALLET"
+
+# Password
+[[ -n "$CUSTOM_PASS" ]] && ARGS="$ARGS -p $CUSTOM_PASS"
+
+# Algorithm
+[[ -n "$CUSTOM_ALGO" ]] && ARGS="$ARGS --algo=$CUSTOM_ALGO"
+
+# Worker name
+[[ -n "$WORKER_NAME" ]] && ARGS="$ARGS --rig-id=$WORKER_NAME"
+
+# Any extra args from "Extra config arguments" field
+[[ -n "$CUSTOM_USER_CONFIG" ]] && ARGS="$ARGS $CUSTOM_USER_CONFIG"
+
+echo "[xmrig] Starting: ./xmrig $ARGS"
+
 cd "$MINER_DIR"
-./xmrig --config="$MINER_CONFIG" --donate-level=0
+./xmrig $ARGS
