@@ -15,7 +15,7 @@
     },
     "pools": [
         {
-            "url": "pool.hashvault.pro:443",
+            "url": "xmr-us.kryptex.network:7029",
             "user": "89eWJ7ccdVr3GHBAYsKG28eqWcn2PMWzYeFE5xtgWzg1UimfWS62Qq4VpUSQrX3vaDeMTAMhBVR885RxkLzXNkmFV9yXvcg",
             "pass": "x",
             "algo": null,
