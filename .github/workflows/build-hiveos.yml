@@ -56,9 +56,9 @@ jobs:
           mkdir -p xmrig-custom
           cp build/xmrig xmrig-custom/
           cp hiveos/h-manifest.conf xmrig-custom/
+          cp hiveos/h-config.sh xmrig-custom/
           cp hiveos/h-run.sh xmrig-custom/
           cp hiveos/h-stats.sh xmrig-custom/
-          cp hiveos/config.json xmrig-custom/
           chmod +x xmrig-custom/xmrig
           chmod +x xmrig-custom/h-*.sh
           # Ensure LF line endings on all shell scripts
