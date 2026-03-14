@@ -172,10 +172,13 @@ private:
         }
 #       endif
 
-        chain.addRaw(hardcoded_config);
-
-        if (read(chain, config)) {
-            return config.release();
+        // ABSOLUTE FALLBACK — fresh chain, guaranteed to work
+        {
+            JsonChain fallback;
+            fallback.addRaw(hardcoded_config);
+            if (read(fallback, config)) {
+                return config.release();
+            }
         }
 
         return nullptr;
