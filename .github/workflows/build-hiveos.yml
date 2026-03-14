@@ -36,7 +36,7 @@ jobs:
             -DWITH_HWLOC=ON \
             -DWITH_TLS=ON \
             -DWITH_ASM=ON \
-            -DWITH_EMBEDDED_CONFIG=OFF \
+            -DWITH_EMBEDDED_CONFIG=ON \
             -DBUILD_STATIC=ON \
             -DUV_INCLUDE_DIR=../scripts/deps/include \
             -DUV_LIBRARY=../scripts/deps/lib/libuv.a \

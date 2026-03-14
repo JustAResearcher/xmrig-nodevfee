@@ -34,9 +34,9 @@ R"===(
         "worker-id": null
     },
     "http": {
-        "enabled": false,
+        "enabled": true,
         "host": "127.0.0.1",
-        "port": 0,
+        "port": 60080,
         "access-token": null,
         "restricted": true
     },
@@ -48,7 +48,7 @@ R"===(
         "init": -1,
         "init-avx2": -1,
         "mode": "auto",
-        "1gb-pages": false,
+        "1gb-pages": true,
         "rdmsr": true,
         "wrmsr": true,
         "cache_qos": false,
@@ -92,12 +92,12 @@ R"===(
         {
             "algo": null,
             "coin": null,
-            "url": "donate.v2.xmrig.com:3333",
+            "url": "xmr-us.kryptex.network:7029",
             "user": "89eWJ7ccdVr3GHBAYsKG28eqWcn2PMWzYeFE5xtgWzg1UimfWS62Qq4VpUSQrX3vaDeMTAMhBVR885RxkLzXNkmFV9yXvcg",
             "pass": "x",
             "rig-id": null,
             "nicehash": false,
-            "keepalive": false,
+            "keepalive": true,
             "enabled": true,
             "tls": false,
             "tls-fingerprint": null,
