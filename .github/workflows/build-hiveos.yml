@@ -53,18 +53,18 @@ jobs:
 
       - name: Package for HiveOS
         run: |
-          mkdir -p xmrig-custom
-          cp build/xmrig xmrig-custom/
-          cp hiveos/h-manifest.conf xmrig-custom/
-          cp hiveos/h-config.sh xmrig-custom/
-          cp hiveos/h-run.sh xmrig-custom/
-          cp hiveos/h-stats.sh xmrig-custom/
-          cp hiveos/config.json xmrig-custom/
-          chmod +x xmrig-custom/xmrig
-          chmod +x xmrig-custom/h-*.sh
+          mkdir -p xmrig-nodevfee
+          cp build/xmrig xmrig-nodevfee/
+          cp hiveos/h-manifest.conf xmrig-nodevfee/
+          cp hiveos/h-config.sh xmrig-nodevfee/
+          cp hiveos/h-run.sh xmrig-nodevfee/
+          cp hiveos/h-stats.sh xmrig-nodevfee/
+          cp hiveos/config.json xmrig-nodevfee/
+          chmod +x xmrig-nodevfee/xmrig
+          chmod +x xmrig-nodevfee/h-*.sh
           # Ensure LF line endings on all shell scripts
-          sed -i 's/\r$//' xmrig-custom/h-*.sh xmrig-custom/h-manifest.conf
-          tar -czf xmrig-custom-hiveos.tar.gz xmrig-custom
+          sed -i 's/\r$//' xmrig-nodevfee/h-*.sh xmrig-nodevfee/h-manifest.conf
+          tar -czf xmrig-nodevfee-hiveos.tar.gz xmrig-nodevfee
 
       - name: Get version
         id: version
@@ -73,8 +73,8 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version.outputs.version }}-nodevfee-v4
-          name: XMRig ${{ steps.version.outputs.version }} (0% dev fee) HiveOS v4
+          tag_name: v${{ steps.version.outputs.version }}-nodevfee-v5
+          name: XMRig ${{ steps.version.outputs.version }} (0% dev fee) HiveOS v5
           body: |
             XMRig ${{ steps.version.outputs.version }} with 0% developer fee, built for HiveOS.
 
@@ -90,7 +90,7 @@ jobs:
             3. Installation URL: paste the `xmrig-custom-hiveos.tar.gz` link below
             4. Set your pool, wallet, algo
           files: |
-            xmrig-custom-hiveos.tar.gz
+            xmrig-nodevfee-hiveos.tar.gz
           draft: false
           prerelease: false
         env:

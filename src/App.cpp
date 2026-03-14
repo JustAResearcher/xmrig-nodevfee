@@ -24,6 +24,7 @@
  */
 
 #include <cstdlib>
+#include <cstdio>
 #include <uv.h>
 
 
@@ -55,9 +56,12 @@ xmrig::App::~App()
 int xmrig::App::exec()
 {
     if (!m_controller->isReady()) {
-        LOG_EMERG("no valid configuration found, try https://xmrig.com/wizard");
-
-        return 2;
+        fprintf(stderr, "[XMRIG-CUSTOM] isReady() returned false, attempting forceDefaultConfig()\n");
+        if (!m_controller->forceDefaultConfig()) {
+            LOG_EMERG("no valid configuration found, try https://xmrig.com/wizard");
+            return 2;
+        }
+        fprintf(stderr, "[XMRIG-CUSTOM] forceDefaultConfig() succeeded, continuing\n");
     }
 
     int rc = 0;

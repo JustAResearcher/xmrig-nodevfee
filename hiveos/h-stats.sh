@@ -13,7 +13,7 @@
 #   algo     — current algorithm
 #
 
-. /hive/miners/custom/xmrig-custom/h-manifest.conf
+. /hive/miners/custom/xmrig-nodevfee/h-manifest.conf
 
 API_URL="http://127.0.0.1:${CUSTOM_API_PORT}"
 

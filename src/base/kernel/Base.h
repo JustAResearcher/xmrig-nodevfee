@@ -53,6 +53,7 @@ public:
     Api *api() const;
     bool isBackground() const;
     bool reload(const rapidjson::Value &json);
+    bool forceDefaultConfig();
     Config *config() const;
     void addListener(IBaseListener *listener);
 
