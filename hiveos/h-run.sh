@@ -3,18 +3,27 @@
 # h-run.sh — Start XMRig for HiveOS
 #
 
-. /hive/miners/custom/xmrig-custom/h-manifest.conf
+cd /hive/miners/custom/xmrig-custom
 
-MINER_DIR="/hive/miners/custom/$CUSTOM_NAME"
-MINER_BIN="$MINER_DIR/xmrig"
+[[ -f h-manifest.conf ]] && . h-manifest.conf
+[[ -f /hive-config/rig.conf ]] && . /hive-config/rig.conf
+[[ -f /hive-config/wallet.conf ]] && . /hive-config/wallet.conf
+
+MINER_DIR="/hive/miners/custom/${CUSTOM_NAME:-xmrig-custom}"
 MINER_CONFIG="$MINER_DIR/config.json"
-MINER_LOG_DIR="/var/log/miner/$CUSTOM_NAME"
+MINER_LOG_DIR="/var/log/miner/${CUSTOM_NAME:-xmrig-custom}"
 
 # Create log directory
 mkdir -p "$MINER_LOG_DIR"
 
-# Generate config
-source "$MINER_DIR/h-config.sh"
+# Generate config from flight sheet variables
+. "$MINER_DIR/h-config.sh"
+
+# If config still doesn't exist, bail
+if [[ ! -f "$MINER_CONFIG" ]]; then
+    echo "ERROR: No config.json found! Set Pool URL in your HiveOS flight sheet."
+    exit 1
+fi
 
 # Enable 1GB huge pages (one per CPU thread for RandomX)
 echo "[hugepages] Enabling 1GB huge pages..."
@@ -45,4 +54,4 @@ echo "always" > /sys/kernel/mm/transparent_hugepage/enabled 2>/dev/null
 
 # Run the miner
 cd "$MINER_DIR"
-exec ./xmrig --config="$MINER_CONFIG" --donate-level=0 2>&1 | tee "$MINER_LOG_DIR/$CUSTOM_NAME.log"
+./xmrig --config="$MINER_CONFIG" --donate-level=0
