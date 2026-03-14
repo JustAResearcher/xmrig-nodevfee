@@ -1,0 +1,92 @@
+name: Build XMRig HiveOS Package
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake automake libtool autoconf wget
+
+      - name: Build static dependencies
+        run: |
+          cd scripts
+          chmod +x *.sh
+          ./build_deps.sh
+
+      - name: Build XMRig
+        run: |
+          mkdir build && cd build
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DWITH_OPENCL=OFF \
+            -DWITH_CUDA=OFF \
+            -DWITH_HWLOC=ON \
+            -DWITH_TLS=ON \
+            -DWITH_ASM=ON \
+            -DWITH_EMBEDDED_CONFIG=OFF \
+            -DBUILD_STATIC=ON \
+            -DUV_INCLUDE_DIR=../scripts/deps/include \
+            -DUV_LIBRARY=../scripts/deps/lib/libuv.a \
+            -DHWLOC_INCLUDE_DIR=../scripts/deps/include \
+            -DHWLOC_LIBRARY=../scripts/deps/lib/libhwloc.a \
+            -DOPENSSL_ROOT_DIR=../scripts/deps
+          make -j$(nproc)
+          strip xmrig
+
+      - name: Verify binary
+        run: |
+          file build/xmrig
+          ls -lh build/xmrig
+
+      - name: Package for HiveOS
+        run: |
+          mkdir -p package
+          cp build/xmrig package/
+          cp hiveos/h-manifest.conf package/
+          cp hiveos/h-config.sh package/
+          cp hiveos/h-run.sh package/
+          cp hiveos/h-stats.sh package/
+          chmod +x package/xmrig
+          chmod +x package/h-*.sh
+          cd package
+          tar -czf ../xmrig-custom-hiveos.tar.gz .
+
+      - name: Get version
+        id: version
+        run: echo "version=$(grep '#define APP_VERSION' src/version.h | awk '{print $3}' | tr -d '\"')" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}-nodevfee
+          name: XMRig ${{ steps.version.outputs.version }} (0% dev fee) HiveOS
+          body: |
+            XMRig ${{ steps.version.outputs.version }} with 0% developer fee, built for HiveOS.
+
+            **Features:**
+            - 0% dev fee (no donation mining)
+            - 1GB huge pages enabled by default
+            - Static Linux binary (no dependencies needed)
+            - Full HiveOS integration (stats, config, flight sheet support)
+
+            **HiveOS Installation:**
+            1. In HiveOS dashboard → Flight Sheets → Add new
+            2. Miner: Custom
+            3. Installation URL: paste the `xmrig-custom-hiveos.tar.gz` link below
+            4. Set your pool, wallet, algo
+          files: |
+            xmrig-custom-hiveos.tar.gz
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
