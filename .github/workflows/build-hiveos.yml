@@ -53,16 +53,17 @@ jobs:
 
       - name: Package for HiveOS
         run: |
-          mkdir -p package
-          cp build/xmrig package/
-          cp hiveos/h-manifest.conf package/
-          cp hiveos/h-config.sh package/
-          cp hiveos/h-run.sh package/
-          cp hiveos/h-stats.sh package/
-          chmod +x package/xmrig
-          chmod +x package/h-*.sh
-          cd package
-          tar -czf ../xmrig-custom-hiveos.tar.gz .
+          mkdir -p xmrig-custom
+          cp build/xmrig xmrig-custom/
+          cp hiveos/h-manifest.conf xmrig-custom/
+          cp hiveos/h-config.sh xmrig-custom/
+          cp hiveos/h-run.sh xmrig-custom/
+          cp hiveos/h-stats.sh xmrig-custom/
+          chmod +x xmrig-custom/xmrig
+          chmod +x xmrig-custom/h-*.sh
+          # Ensure LF line endings on all shell scripts
+          sed -i 's/\r$//' xmrig-custom/h-*.sh xmrig-custom/h-manifest.conf
+          tar -czf xmrig-custom-hiveos.tar.gz xmrig-custom
 
       - name: Get version
         id: version
