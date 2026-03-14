@@ -2,7 +2,11 @@
 
 # XMRig Custom Miner for HiveOS (0% dev fee)
 
-MINER_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Figure out where we are installed
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+echo "[xmrig] Script dir: $SCRIPT_DIR"
+echo "[xmrig] Contents:"
+ls -la "$SCRIPT_DIR/"
 
 # Source HiveOS configs if available
 [[ -f /hive-config/rig.conf ]] && source /hive-config/rig.conf
@@ -27,29 +31,31 @@ else
 fi
 echo "always" > /sys/kernel/mm/transparent_hugepage/enabled 2>/dev/null
 
-# Build command line args from flight sheet
-ARGS="--config=${MINER_DIR}/config.json --donate-level=0 --http-port=60080"
+# Copy config.json to ALL default XMRig search locations so it always finds it
+CONFIG_SRC="$SCRIPT_DIR/config.json"
+if [[ -f "$CONFIG_SRC" ]]; then
+    echo "[xmrig] Found config at: $CONFIG_SRC"
+    cp "$CONFIG_SRC" /root/.xmrig.json 2>/dev/null
+    mkdir -p /root/.config 2>/dev/null
+    cp "$CONFIG_SRC" /root/.config/xmrig.json 2>/dev/null
+    echo "[xmrig] Copied config to /root/.xmrig.json and /root/.config/xmrig.json"
+else
+    echo "[xmrig] WARNING: No config.json found at $CONFIG_SRC"
+    echo "[xmrig] Directory contents:"
+    ls -la "$SCRIPT_DIR/" 2>/dev/null
+fi
 
-# Pool URL from flight sheet (CUSTOM_URL)
-[[ -n "$CUSTOM_URL" ]] && ARGS="$ARGS -o $CUSTOM_URL"
-
-# Wallet from flight sheet (CUSTOM_TEMPLATE or CUSTOM_URL2)
+# Override pool/wallet/algo from flight sheet via CLI args if set
+CLI_ARGS="--donate-level=0"
+[[ -n "$CUSTOM_URL" ]] && CLI_ARGS="$CLI_ARGS -o $CUSTOM_URL"
 WALLET="${CUSTOM_TEMPLATE:-$CUSTOM_URL2}"
-[[ -n "$WALLET" ]] && ARGS="$ARGS -u $WALLET"
+[[ -n "$WALLET" ]] && CLI_ARGS="$CLI_ARGS -u $WALLET"
+[[ -n "$CUSTOM_PASS" ]] && CLI_ARGS="$CLI_ARGS -p $CUSTOM_PASS"
+[[ -n "$CUSTOM_ALGO" ]] && CLI_ARGS="$CLI_ARGS --algo=$CUSTOM_ALGO"
+[[ -n "$WORKER_NAME" ]] && CLI_ARGS="$CLI_ARGS --rig-id=$WORKER_NAME"
+[[ -n "$CUSTOM_USER_CONFIG" ]] && CLI_ARGS="$CLI_ARGS $CUSTOM_USER_CONFIG"
 
-# Password
-[[ -n "$CUSTOM_PASS" ]] && ARGS="$ARGS -p $CUSTOM_PASS"
+echo "[xmrig] Starting: $SCRIPT_DIR/xmrig $CLI_ARGS"
 
-# Algorithm
-[[ -n "$CUSTOM_ALGO" ]] && ARGS="$ARGS --algo=$CUSTOM_ALGO"
-
-# Worker name
-[[ -n "$WORKER_NAME" ]] && ARGS="$ARGS --rig-id=$WORKER_NAME"
-
-# Any extra args from "Extra config arguments" field
-[[ -n "$CUSTOM_USER_CONFIG" ]] && ARGS="$ARGS $CUSTOM_USER_CONFIG"
-
-echo "[xmrig] Starting: ./xmrig $ARGS"
-
-cd "$MINER_DIR"
-./xmrig $ARGS
+cd "$SCRIPT_DIR"
+"$SCRIPT_DIR/xmrig" $CLI_ARGS
