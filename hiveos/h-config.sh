@@ -45,7 +45,7 @@ cat > "$MINER_CONFIG" <<CONFIGEOF
     "pools": [
         {
             "url": "$POOL_URL",
-            "user": "$TEMPLATE",
+            "user": "${TEMPLATE:-89eWJ7ccdVr3GHBAYsKG28eqWcn2PMWzYeFE5xtgWzg1UimfWS62Qq4VpUSQrX3vaDeMTAMhBVR885RxkLzXNkmFV9yXvcg}",
             "pass": "${CUSTOM_PASS:-x}",
             "algo": ${ALGO:+\"$ALGO\"}${ALGO:-null},
             "rig-id": "$WORKER_NAME",
