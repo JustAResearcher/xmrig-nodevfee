@@ -51,8 +51,6 @@ xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, bool oneGbPages
     m_node(node),
     m_capacity(m_size)
 {
-    fprintf(stderr, "[XMRIG-CUSTOM] VirtualMemory ctor: size=%zu hugePages=%d oneGbPages=%d usePool=%d node=%u\n", size, (int)hugePages, (int)oneGbPages, (int)usePool, node);
-
     if (usePool) {
         std::lock_guard<std::mutex> lock(mutex);
         if (hugePages && !pool->isHugePages(node) && allocateLargePagesMemory()) {

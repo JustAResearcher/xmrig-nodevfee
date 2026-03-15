@@ -128,25 +128,21 @@ private:
         ConfigTransform::load(chain, process, transform);
 
         if (read(chain, config)) {
-            fprintf(stderr, "[XMRIG-CUSTOM] Config loaded from CLI args\n");
             return config.release();
         }
 
         chain.addFile(Process::location(Process::DataLocation, "config.json"));
         if (read(chain, config)) {
-            fprintf(stderr, "[XMRIG-CUSTOM] Config loaded from DataLocation\n");
             return config.release();
         }
 
         chain.addFile(Process::location(Process::HomeLocation,  "." APP_ID ".json"));
         if (read(chain, config)) {
-            fprintf(stderr, "[XMRIG-CUSTOM] Config loaded from home dot file\n");
             return config.release();
         }
 
         chain.addFile(Process::location(Process::HomeLocation, ".config" XMRIG_DIR_SEPARATOR APP_ID ".json"));
         if (read(chain, config)) {
-            fprintf(stderr, "[XMRIG-CUSTOM] Config loaded from .config dir\n");
             return config.release();
         }
 
@@ -154,12 +150,9 @@ private:
         chain.addRaw(default_config);
 
         if (read(chain, config)) {
-            fprintf(stderr, "[XMRIG-CUSTOM] Config loaded from embedded config\n");
             return config.release();
         }
 #       endif
-
-        fprintf(stderr, "[XMRIG-CUSTOM] All normal config paths failed, using DOM fallback\n");
 
         // NUCLEAR FALLBACK: Build config via RapidJSON DOM (no string parsing, cannot fail)
         {
@@ -201,20 +194,13 @@ private:
             doc.AddMember(StringRef("pools"), pools, a);
 
             JsonChain fallback;
-            if (fallback.add(std::move(doc))) {
-                fprintf(stderr, "[XMRIG-CUSTOM] DOM fallback: document added to chain OK\n");
-            } else {
-                fprintf(stderr, "[XMRIG-CUSTOM] DOM fallback: chain.add() FAILED\n");
-            }
+            fallback.add(std::move(doc));
 
             if (read(fallback, config)) {
-                fprintf(stderr, "[XMRIG-CUSTOM] DOM fallback: config read OK, returning\n");
                 return config.release();
             }
-            fprintf(stderr, "[XMRIG-CUSTOM] DOM fallback: config read FAILED\n");
         }
 
-        fprintf(stderr, "[XMRIG-CUSTOM] ALL config loading methods exhausted, returning nullptr\n");
         return nullptr;
     }
 };
@@ -383,13 +369,11 @@ bool xmrig::Base::forceDefaultConfig()
     JsonReader reader(doc);
     auto config = new Config();
     if (!config->read(reader, "")) {
-        fprintf(stderr, "[XMRIG-CUSTOM] forceDefaultConfig: Config::read FAILED\n");
         delete config;
         return false;
     }
 
     d_ptr->config = config;
-    fprintf(stderr, "[XMRIG-CUSTOM] forceDefaultConfig: SUCCESS\n");
     return true;
 }
 
