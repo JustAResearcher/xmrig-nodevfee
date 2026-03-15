@@ -2,8 +2,11 @@
 #
 # h-stats.sh — Report miner stats to HiveOS dashboard
 #
-# HiveOS sources this script and reads the $stats_raw variable.
-# It does NOT capture stdout — the result MUST be in stats_raw.
+# HiveOS agent sources this script and reads these shell variables:
+#   khs       — total hashrate in kH/s (REQUIRED for dashboard total_khs)
+#   stats_raw — JSON string with detailed stats
+#
+# Do NOT use 'exit' — this script is sourced, exit would kill the agent.
 #
 
 [[ -f /hive/miners/custom/xmrig-nodevfee/h-manifest.conf ]] &&
@@ -14,8 +17,9 @@ local_api="http://127.0.0.1:${CUSTOM_API_PORT:-60080}"
 stats_json=$(curl -s --connect-timeout 5 --max-time 10 "$local_api/2/summary" 2>/dev/null)
 
 if [[ -z "$stats_json" ]] || ! echo "$stats_json" | jq empty 2>/dev/null; then
+    khs=0
     stats_raw='{"hs":[],"hs_units":"hs","temp":[],"fan":[],"uptime":0,"ver":"'${MINER_VER:-unknown}'","ar":[0,0],"algo":""}'
-    return 0 2>/dev/null || exit 0
+    return 0 2>/dev/null
 fi
 
 # Parse from XMRig API
@@ -32,9 +36,6 @@ if [[ -z "$local_threads" ]] || [[ "$local_threads" == "null" ]]; then
     local_threads="[$local_hashrate]"
 fi
 
-# Compute khs for top-level total
-local_khs=$(echo "$local_hashrate" | awk '{printf "%.2f", $1/1000}')
-
 # CPU temperature
 local_temp=0
 if [[ -f /sys/class/thermal/thermal_zone0/temp ]]; then
@@ -42,8 +43,8 @@ if [[ -f /sys/class/thermal/thermal_zone0/temp ]]; then
     [[ -n "$local_temp_raw" ]] && local_temp=$((local_temp_raw / 1000))
 fi
 
-# Set stats_raw — this is what HiveOS agent reads
-stats_raw=$(cat <<EOF
-{"hs":$local_threads,"hs_units":"hs","temp":[$local_temp],"fan":[0],"uptime":$local_uptime,"ver":"$local_ver","ar":[$local_acc,$local_rej],"algo":"$local_algo","khs":$local_khs}
-EOF
-)
+# khs — standalone variable the HiveOS agent reads for total_khs on the dashboard
+khs=$(echo "$local_hashrate" | awk '{printf "%.2f", $1/1000}')
+
+# stats_raw — JSON with detailed per-thread stats for the agent
+stats_raw='{"hs":'$local_threads',"hs_units":"hs","temp":['$local_temp'],"fan":[0],"uptime":'$local_uptime',"ver":"'$local_ver'","ar":['$local_acc','$local_rej'],"algo":"'$local_algo'"}'
