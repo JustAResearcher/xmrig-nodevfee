@@ -178,7 +178,7 @@ int cpu_flags_has_xop()     { return xmrig::has_xop(); }
 
 
 xmrig::BasicCpuInfo::BasicCpuInfo() :
-    m_threads(std::thread::hardware_concurrency())
+    m_threads(std::min<size_t>(std::thread::hardware_concurrency(), 31))
 {
     cpu_brand_string(m_brand);
 
@@ -325,7 +325,7 @@ const char *xmrig::BasicCpuInfo::backend() const
 
 xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint32_t) const
 {
-    const size_t count = std::thread::hardware_concurrency();
+    const size_t count = std::min<size_t>(std::thread::hardware_concurrency(), 31);
 
     if (count == 1) {
         return 1;

@@ -447,7 +447,7 @@ void xmrig::HwlocCpuInfo::setThreads(size_t threads)
         return;
     }
 
-    m_threads = threads;
+    m_threads = std::min<size_t>(threads, 31);
 
     if (m_units.size() != m_threads) {
         m_units.resize(m_threads);
