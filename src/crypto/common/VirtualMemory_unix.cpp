@@ -23,7 +23,10 @@
 
 
 #include <cmath>
+#include <cerrno>
+#include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <sys/mman.h>
 
@@ -97,7 +100,7 @@ bool xmrig::VirtualMemory::isHugepagesAvailable()
 bool xmrig::VirtualMemory::isOneGbPagesAvailable()
 {
 #   ifdef XMRIG_OS_LINUX
-    return Cpu::info()->hasOneGbPages();
+    return true;
 #   else
     return false;
 #   endif
@@ -195,11 +198,14 @@ void *xmrig::VirtualMemory::allocateLargePagesMemory(size_t size)
 void *xmrig::VirtualMemory::allocateOneGbPagesMemory(size_t size)
 {
 #   ifdef XMRIG_OS_LINUX
-    if (isOneGbPagesAvailable()) {
-        void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE | hugePagesFlag(kOneGiB), 0, 0);
-
-        return mem == MAP_FAILED ? nullptr : mem;
+    fprintf(stderr, "[XMRIG-CUSTOM] allocateOneGbPagesMemory: attempting mmap for %zu bytes\n", size);
+    void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE | hugePagesFlag(kOneGiB), 0, 0);
+    if (mem == MAP_FAILED) {
+        fprintf(stderr, "[XMRIG-CUSTOM] allocateOneGbPagesMemory: mmap FAILED errno=%d (%s)\n", errno, strerror(errno));
+        return nullptr;
     }
+    fprintf(stderr, "[XMRIG-CUSTOM] allocateOneGbPagesMemory: mmap SUCCESS at %p\n", mem);
+    return mem;
 #   endif
 
     return nullptr;
@@ -255,6 +261,8 @@ bool xmrig::VirtualMemory::allocateLargePagesMemory()
 
 bool xmrig::VirtualMemory::allocateOneGbPagesMemory()
 {
+    fprintf(stderr, "[XMRIG-CUSTOM] allocateOneGbPagesMemory(member): size=%zu node=%u\n", m_size, m_node);
+
 #   ifdef XMRIG_OS_LINUX
     LinuxMemory::reserve(m_size, m_node, kOneGiB);
 #   endif
@@ -262,6 +270,7 @@ bool xmrig::VirtualMemory::allocateOneGbPagesMemory()
     m_scratchpad = static_cast<uint8_t*>(allocateOneGbPagesMemory(m_size));
     if (m_scratchpad) {
         m_flags.set(FLAG_1GB_PAGES, true);
+        fprintf(stderr, "[XMRIG-CUSTOM] allocateOneGbPagesMemory(member): SUCCESS, FLAG_1GB_PAGES set\n");
 
         madvise(m_scratchpad, m_size, MADV_RANDOM | MADV_WILLNEED);
 
@@ -272,6 +281,7 @@ bool xmrig::VirtualMemory::allocateOneGbPagesMemory()
         return true;
     }
 
+    fprintf(stderr, "[XMRIG-CUSTOM] allocateOneGbPagesMemory(member): FAILED, falling back\n");
     return false;
 }
 

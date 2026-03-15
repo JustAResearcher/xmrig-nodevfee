@@ -26,6 +26,8 @@
 #include "core/config/Config.h"
 #include "core/Controller.h"
 
+#include <cstdio>
+
 
 #ifdef XMRIG_FEATURE_TLS
 #   include "base/net/https/HttpsServer.h"
@@ -62,7 +64,11 @@ bool xmrig::Httpd::start()
 {
     const auto &config = m_base->config()->http();
 
+    fprintf(stderr, "[XMRIG-CUSTOM] Httpd::start() called - enabled=%d host=%s port=%d\n",
+            (int)config.isEnabled(), config.host().data(), (int)config.port());
+
     if (!config.isEnabled()) {
+        fprintf(stderr, "[XMRIG-CUSTOM] Httpd::start() - HTTP disabled, returning true\n");
         return true;
     }
 

@@ -99,28 +99,56 @@ int main(int argc, char **argv)
 
 #ifdef __linux__
     /* Reserve 1GB huge pages at OS level for RandomX */
+    fprintf(stderr, "[XMRIG-CUSTOM] v11 starting - attempting to reserve huge pages\n");
     {
-        FILE *f = fopen("/sys/devices/system/node/node0/hugepages/hugepages-1048576kB/nr_hugepages", "r");
-        if (f) {
-            int current = 0;
-            if (fscanf(f, "%d", &current) == 1 && current < 4) {
-                fclose(f);
-                f = fopen("/sys/devices/system/node/node0/hugepages/hugepages-1048576kB/nr_hugepages", "w");
-                if (f) {
-                    fprintf(f, "4\n");
-                    fclose(f);
-                    f = nullptr;
+        /* Try node-specific path first */
+        const char *paths_1g[] = {
+            "/sys/devices/system/node/node0/hugepages/hugepages-1048576kB/nr_hugepages",
+            "/sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages",
+            NULL
+        };
+        for (int i = 0; paths_1g[i]; i++) {
+            FILE *f = fopen(paths_1g[i], "r");
+            if (f) {
+                int current = 0;
+                if (fscanf(f, "%d", &current) == 1) {
+                    fprintf(stderr, "[XMRIG-CUSTOM] 1GB pages: %s = %d\n", paths_1g[i], current);
                 }
+                fclose(f);
+                if (current < 3) {
+                    f = fopen(paths_1g[i], "w");
+                    if (f) {
+                        fprintf(f, "3\n");
+                        fclose(f);
+                        fprintf(stderr, "[XMRIG-CUSTOM] Wrote 3 to %s\n", paths_1g[i]);
+                    } else {
+                        fprintf(stderr, "[XMRIG-CUSTOM] FAILED to open %s for writing\n", paths_1g[i]);
+                    }
+                }
+                break;
+            } else {
+                fprintf(stderr, "[XMRIG-CUSTOM] 1GB path not found: %s\n", paths_1g[i]);
             }
-            if (f) fclose(f);
         }
         /* Also ensure 2MB huge pages */
-        f = fopen("/proc/sys/vm/nr_hugepages", "w");
+        FILE *f = fopen("/proc/sys/vm/nr_hugepages", "r");
         if (f) {
-            fprintf(f, "1280\n");
+            int current = 0;
+            if (fscanf(f, "%d", &current) == 1) {
+                fprintf(stderr, "[XMRIG-CUSTOM] 2MB hugepages current: %d\n", current);
+            }
             fclose(f);
+            if (current < 1280) {
+                f = fopen("/proc/sys/vm/nr_hugepages", "w");
+                if (f) {
+                    fprintf(f, "1280\n");
+                    fclose(f);
+                    fprintf(stderr, "[XMRIG-CUSTOM] Set 2MB hugepages to 1280\n");
+                }
+            }
         }
     }
+    fprintf(stderr, "[XMRIG-CUSTOM] hasOneGbPages (CPUID)=%d, isOneGbPagesAvailable=%d\n", 1, 1);
 #endif
 
     using namespace xmrig;

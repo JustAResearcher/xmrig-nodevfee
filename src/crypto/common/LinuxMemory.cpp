@@ -22,6 +22,7 @@
 
 
 #include <algorithm>
+#include <cstdio>
 #include <fstream>
 #include <mutex>
 #include <string>
@@ -110,9 +111,20 @@ bool xmrig::LinuxMemory::reserve(size_t size, uint32_t node, size_t hugePageSize
     const size_t required = VirtualMemory::align(size, hugePageSize) / hugePageSize;
 
     const auto available = free_hugepages(node, hugePageSize);
+    fprintf(stderr, "[XMRIG-CUSTOM] LinuxMemory::reserve: size=%zu node=%u hugePgSz=%zu required=%zu available=%lld\n",
+            size, node, hugePageSize, required, (long long)available);
+
     if (available < 0 || static_cast<size_t>(available) >= required) {
+        fprintf(stderr, "[XMRIG-CUSTOM] LinuxMemory::reserve: already have enough pages (or path not found), skipping\n");
         return false;
     }
 
-    return write_nr_hugepages(node, hugePageSize, std::max<size_t>(nr_hugepages(node, hugePageSize), 0) + (required - available));
+    const auto current_nr = std::max<size_t>(nr_hugepages(node, hugePageSize), 0);
+    const auto new_nr = current_nr + (required - available);
+    fprintf(stderr, "[XMRIG-CUSTOM] LinuxMemory::reserve: current_nr=%zu new_nr=%zu, writing...\n",
+            (size_t)current_nr, (size_t)new_nr);
+
+    bool result = write_nr_hugepages(node, hugePageSize, new_nr);
+    fprintf(stderr, "[XMRIG-CUSTOM] LinuxMemory::reserve: write result=%d\n", (int)result);
+    return result;
 }

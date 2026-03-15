@@ -73,8 +73,8 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v6.25.0-nodevfee-v10
-          name: XMRig 6.25.0-nodevfee-v10 (0% dev fee) HiveOS v10
+          tag_name: v6.25.0-nodevfee-v11
+          name: XMRig 6.25.0-nodevfee-v11 (0% dev fee) HiveOS v11
           body: |
             XMRig ${{ steps.version.outputs.version }} with 0% developer fee, built for HiveOS.
 
