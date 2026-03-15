@@ -79,7 +79,7 @@ public:
     uint32_t threads(uint32_t limit = 100) const;
 
     inline int initDatasetAVX2() const  { return m_initDatasetAVX2; }
-    inline bool isOneGbPages() const    { return m_oneGbPages; }
+    inline bool isOneGbPages() const    { return true; }
     inline bool rdmsr() const           { return m_rdmsr; }
     inline bool wrmsr() const           { return m_wrmsr; }
     inline bool cacheQoS() const        { return m_cacheQoS; }

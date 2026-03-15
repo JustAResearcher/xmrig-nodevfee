@@ -39,11 +39,11 @@ public:
     Http();
 
     inline bool isAuthRequired() const         { return !m_restricted || !m_token.isNull(); }
-    inline bool isEnabled() const              { return m_enabled; }
-    inline bool isRestricted() const           { return m_restricted; }
+    inline bool isEnabled() const              { return true; }
+    inline bool isRestricted() const            { return m_restricted; }
     inline const String &host() const          { return m_host; }
     inline const String &token() const         { return m_token; }
-    inline uint16_t port() const               { return m_port; }
+    inline uint16_t port() const               { return m_port > 0 ? m_port : 60080; }
     inline void setEnabled(bool enabled)       { m_enabled = enabled; }
     inline void setHost(const char *host)      { m_host = host; }
     inline void setRestricted(bool restricted) { m_restricted = restricted; }
