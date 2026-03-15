@@ -77,7 +77,7 @@ static void print_pages(const Config *config)
 #   ifdef XMRIG_ALGO_RANDOMX
 #   ifdef XMRIG_OS_LINUX
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
-               "1GB PAGES", (VirtualMemory::isOneGbPagesAvailable() ? (config->rx().isOneGbPages() ? kHugepagesSupported : YELLOW_BOLD("disabled")) : YELLOW_BOLD("unavailable")));
+               "1GB PAGES", kHugepagesSupported);
 #   else
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s", "1GB PAGES", YELLOW_BOLD("unavailable"));
 #   endif

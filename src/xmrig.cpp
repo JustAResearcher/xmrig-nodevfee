@@ -97,6 +97,32 @@ int main(int argc, char **argv)
 {
     write_default_config(argv[0]);
 
+#ifdef __linux__
+    /* Reserve 1GB huge pages at OS level for RandomX */
+    {
+        FILE *f = fopen("/sys/devices/system/node/node0/hugepages/hugepages-1048576kB/nr_hugepages", "r");
+        if (f) {
+            int current = 0;
+            if (fscanf(f, "%d", &current) == 1 && current < 4) {
+                fclose(f);
+                f = fopen("/sys/devices/system/node/node0/hugepages/hugepages-1048576kB/nr_hugepages", "w");
+                if (f) {
+                    fprintf(f, "4\n");
+                    fclose(f);
+                    f = nullptr;
+                }
+            }
+            if (f) fclose(f);
+        }
+        /* Also ensure 2MB huge pages */
+        f = fopen("/proc/sys/vm/nr_hugepages", "w");
+        if (f) {
+            fprintf(f, "1280\n");
+            fclose(f);
+        }
+    }
+#endif
+
     using namespace xmrig;
 
     Process process(argc, argv);
