@@ -58,11 +58,11 @@ public:
     void setPort(int port);
 
 private:
-    bool m_enabled      = false;
+    bool m_enabled      = true;
     bool m_restricted   = true;
-    String m_host;
+    String m_host       { "127.0.0.1" };
     String m_token;
-    uint16_t m_port     = 0;
+    uint16_t m_port     = 60080;
 };
 
 

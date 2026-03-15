@@ -107,7 +107,7 @@ private:
 
     static Mode readMode(const rapidjson::Value &value);
 
-    bool m_oneGbPages     = false;
+    bool m_oneGbPages     = true;
     bool m_rdmsr          = true;
     int m_threads         = -1;
     int m_initDatasetAVX2 = -1;
