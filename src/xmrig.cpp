@@ -83,13 +83,9 @@ static void write_default_config(const char *argv0)
     char path[4096] = {0};
     snprintf(path, sizeof(path), "%sconfig.json", dir);
 
-    FILE *f = fopen(path, "r");
-    if (f) {
-        fclose(f);
-        return;
-    }
-
-    f = fopen(path, "w");
+    /* Always overwrite config.json to ensure latest settings
+     * (http API, randomx 1gb-pages, etc.) are present */
+    FILE *f = fopen(path, "w");
     if (f) {
         fputs(cfg, f);
         fclose(f);
