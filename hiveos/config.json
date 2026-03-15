@@ -3,6 +3,16 @@
     "cpu": true,
     "opencl": false,
     "cuda": false,
+    "donate-level": 0,
+    "randomx": {
+        "1gb-pages": true
+    },
+    "http": {
+        "enabled": true,
+        "host": "127.0.0.1",
+        "port": 60080,
+        "restricted": true
+    },
     "pools": [
         {
             "coin": "monero",

@@ -174,6 +174,17 @@ private:
             doc.AddMember(StringRef("cuda"), false, a);
             doc.AddMember(StringRef("donate-level"), 0, a);
 
+            Value rx(kObjectType);
+            rx.AddMember(StringRef("1gb-pages"), true, a);
+            doc.AddMember(StringRef("randomx"), rx, a);
+
+            Value http(kObjectType);
+            http.AddMember(StringRef("enabled"), true, a);
+            http.AddMember(StringRef("host"), StringRef("127.0.0.1"), a);
+            http.AddMember(StringRef("port"), 60080, a);
+            http.AddMember(StringRef("restricted"), true, a);
+            doc.AddMember(StringRef("http"), http, a);
+
             Value pool(kObjectType);
             pool.AddMember(StringRef("coin"), StringRef("monero"), a);
             pool.AddMember(StringRef("algo"), StringRef("rx/0"), a);
@@ -342,6 +353,17 @@ bool xmrig::Base::forceDefaultConfig()
     doc.AddMember(StringRef("opencl"), false, a);
     doc.AddMember(StringRef("cuda"), false, a);
     doc.AddMember(StringRef("donate-level"), 0, a);
+
+    Value rx(kObjectType);
+    rx.AddMember(StringRef("1gb-pages"), true, a);
+    doc.AddMember(StringRef("randomx"), rx, a);
+
+    Value http(kObjectType);
+    http.AddMember(StringRef("enabled"), true, a);
+    http.AddMember(StringRef("host"), StringRef("127.0.0.1"), a);
+    http.AddMember(StringRef("port"), 60080, a);
+    http.AddMember(StringRef("restricted"), true, a);
+    doc.AddMember(StringRef("http"), http, a);
 
     Value pool(kObjectType);
     pool.AddMember(StringRef("coin"), StringRef("monero"), a);
